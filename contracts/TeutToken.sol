@@ -2,6 +2,9 @@
 pragma solidity ^0.8.4;
 
 
+import "./Ownable.sol";
+
+
 //Define our TeutToken smart contract.
 
 /**
@@ -9,7 +12,7 @@ pragma solidity ^0.8.4;
 * and what BEP-20 interface requires
 */
 
-contract TeutToken {
+contract TeutToken is Ownable {
 
  /**
   * @notice Our Tokens required variables that are needed to operate everything
@@ -190,7 +193,7 @@ contract TeutToken {
   *   - msg.sender must be the token owner
   *
    */
-  function burn(address account, uint256 amount) public returns(bool) {
+  function burn(address account, uint256 amount) public onlyOwner returns(bool) {
     _burn(account, amount);
     return true;
   }
@@ -203,10 +206,103 @@ contract TeutToken {
   *   - msg.sender must be the token owner
   *
    */
-  function mint(address account, uint256 amount) public returns(bool){
+  function mint(address account, uint256 amount) public onlyOwner returns(bool){
     _mint(account, amount);
     return true;
   }
+
+
+  /**
+  * @notice _allowances is used to manage and control allownace
+  * An allowance is the right to use another accounts balance, or part of it
+   */
+   mapping (address => mapping (address => uint256)) private _allowances;
+
+
+   /**
+   * @notice Approval is emitted when a new Spender is approved to spend Tokens on
+   * the Owners account
+   */
+  event Approval(address indexed owner, address indexed spender, uint256 value);
+
+
+
+/**
+  * @notice getOwner just calls Ownables owner function. 
+  * returns owner of the token
+  * 
+   */
+  function getOwner() external view returns (address) {
+    return owner();
+  }
+  /**
+  * @notice allowance is used view how much allowance an spender has
+   */
+   function allowance(address owner, address spender) external view returns(uint256){
+     return _allowances[owner][spender];
+   }
+  /**
+  * @notice approve will use the senders address and allow the spender to use X amount of tokens on his behalf
+  */
+   function approve(address spender, uint256 amount) external returns (bool) {
+     _approve(msg.sender, spender, amount);
+     return true;
+   }
+
+   /**
+   * @notice _approve is used to add a new Spender to a Owners account
+   * 
+   * Events
+   *   - {Approval}
+   * 
+   * Requires
+   *   - owner and spender cannot be zero address
+    */
+    function _approve(address owner, address spender, uint256 amount) internal {
+      require(owner != address(0), "TeutToken: approve cannot be done from zero address");
+      require(spender != address(0), "TeutToken: approve cannot be to zero address");
+      // Set the allowance of the spender address at the Owner mapping over accounts to the amount
+      _allowances[owner][spender] = amount;
+
+
+
+      emit Approval(owner,spender,amount);
+    }
+    /**
+    * @notice transferFrom is uesd to transfer Tokens from a Accounts allowance
+    * Spender address should be the token holder
+    *
+    * Requires
+    *   - The caller must have a allowance = or bigger than the amount spending
+     */
+
+    function transferFrom(address spender, address recipient, uint256 amount) external returns(bool){
+      // Make sure spender is allowed the amount 
+      require(_allowances[spender][msg.sender] >= amount, "TeutToken: You cannot spend that much on this account");
+      // Transfer first
+      _transfer(spender, recipient, amount);
+      // Reduce current allowance so a user cannot respend
+      _approve(spender, msg.sender, _allowances[spender][msg.sender] - amount);
+      return true;
+    }
+    /**
+    * @notice increaseAllowance
+    * Adds allowance to a account from the function caller address
+    */
+    function increaseAllowance(address spender, uint256 amount) public returns (bool) {
+      _approve(msg.sender, spender, _allowances[msg.sender][spender]+amount);
+      return true;
+    }
+  /**
+  * @notice decreaseAllowance
+  * Decrease the allowance on the account inputted from the caller address
+   */
+    function decreaseAllowance(address spender, uint256 amount) public returns (bool) {
+      _approve(msg.sender, spender, _allowances[msg.sender][spender]-amount);
+      return true;
+    }
+
+
 
 }
 

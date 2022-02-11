@@ -118,4 +118,58 @@ contract("TeutToken", async accounts => {
        
     })
 
+
+
+    it ("allow account some allowance", async() => {
+        teutToken = await TeutToken.deployed();
+
+        
+        try{
+            // Give account(0) access too 100 tokens on creator
+            await teutToken.approve('0x0000000000000000000000000000000000000000', 100);    
+        }catch(error){
+            assert.equal(error.reason, 'TeutToken: approve cannot be to zero address', "Should be able to approve zero address");
+        }
+
+        try{
+            // Give account 1 access too 100 tokens on zero account
+            await teutToken.approve(accounts[1], 100);    
+        }catch(error){
+            assert.fail(error); // shold not fail
+        }
+
+        // Verify by checking allowance
+        let allowance = await teutToken.allowance(accounts[0], accounts[1]);
+
+        assert.equal(allowance.toNumber(), 100, "Allowance was not correctly inserted");
+    })
+
+    it("transfering with allowance", async() => {
+        teutToken = await TeutToken.deployed();
+
+        try{
+            // Account 1 should have 100 tokens by now to use on account 0 
+            // lets try using more 
+            await teutToken.transferFrom(accounts[0], accounts[2], 200, { from: accounts[1] } );
+        }catch(error){
+
+            assert.equal(error.reason, "TeutToken: You cannot spend that much on this account", "Failed to detect overspending")
+        }
+        let init_allowance = await teutToken.allowance(accounts[0], accounts[1]);
+        console.log("init balalnce: ", init_allowance.toNumber())
+        try{
+            // Account 1 should have 100 tokens by now to use on account 0 
+            // lets try using more 
+            let worked = await teutToken.transferFrom(accounts[0], accounts[2], 50, {from:accounts[1]});
+        }catch(error){
+            assert.fail(error);
+        }
+
+        // Make sure allowance was changed
+        let allowance = await teutToken.allowance(accounts[0], accounts[1]);
+        assert.equal(allowance.toNumber(), 50, "The allowance should have been decreased by 50")
+
+        
+    })
+
 });
