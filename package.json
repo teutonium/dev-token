@@ -1,7 +1,6 @@
 {
   "name": "dev-token",
   "version": "1.0.0",
-  "description": "",
   "main": "truffle-config.js",
   "directories": {
     "test": "test"
@@ -10,5 +9,18 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
-  "license": "ISC"
+  "license": "ISC",
+  "dependencies": {
+    "start": "^5.1.0",
+    "web3-eth": "^1.7.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/teutonium/dev-token.git"
+  },
+  "bugs": {
+    "url": "https://github.com/teutonium/dev-token/issues"
+  },
+  "homepage": "https://github.com/teutonium/dev-token#readme",
+  "description": ""
 }
